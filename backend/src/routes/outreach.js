@@ -19,9 +19,10 @@ const TYPE_CONFIG = {
     label: 'LinkedIn connection request',
     instructions: (senderName) => `Write a short, genuine LinkedIn connection request message (max 300 characters — LinkedIn's limit).
 - Sound like a real person, not a recruiter or bot
-- Reference the specific hiring signals naturally — don't just list them
+- Reference at least one specific hiring signal by name or detail — not just "actively hiring"
 - End with a clear but low-pressure reason to connect
-- Do NOT use generic phrases like "I came across your profile" or "I hope this message finds you well"
+- Do NOT use generic phrases like "I came across your profile", "I hope this message finds you well", or "actively hiring right now"
+- Do NOT use any placeholder text like [their area], [role], [skill], etc. — the only bracket placeholder allowed is [Name] for the recipient
 - Do NOT include a subject line
 - Use [Name] for the recipient and sign off with: ${senderName}`,
   },
@@ -31,7 +32,7 @@ const TYPE_CONFIG = {
 - Include a subject line on the first line in the format: Subject: ...
 - Keep the body to 3 short paragraphs max
 - First paragraph: why you're reaching out (reference the signals naturally)
-- Second paragraph: what you bring to the table (use [your skill/background] as a placeholder)
+- Second paragraph: what you bring to the table (use [your background] as the only placeholder — keep it to one bracket phrase)
 - Third paragraph: single clear CTA — ask for a 15-min call
 - Sign off with: Best,\\n${senderName}
 - Sound confident but not desperate
@@ -41,7 +42,8 @@ const TYPE_CONFIG = {
     label: 'follow-up message',
     instructions: (senderName) => `Write a brief, respectful follow-up message for someone who already sent an initial outreach to this company.
 - Acknowledge you've already reached out once — keep it light
-- Reference the company's growth signals to show you're still engaged and informed
+- Reference a specific signal detail (e.g. a recent hire, funding, expansion) — not just "still watching your growth"
+- Do NOT use any placeholder text like [their area], [role], [skill], etc.
 - Keep it to 3-4 sentences max
 - End with an easy yes/no question
 - Do NOT be passive aggressive or guilt-trip them for not responding
