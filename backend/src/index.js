@@ -14,6 +14,9 @@ const { startSignalCron } = require('./jobs/signalCron');
 
 const app = express();
 
+// Trust Railway's proxy so rate limiting uses the real client IP
+app.set('trust proxy', 1);
+
 // Security headers (XSS, clickjacking, MIME sniffing, etc.)
 app.use(helmet());
 

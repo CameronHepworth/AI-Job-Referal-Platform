@@ -46,7 +46,16 @@ export async function registerForPushNotifications() {
     });
   }
 
-  const tokenData = await Notifications.getExpoPushTokenAsync();
+  const projectId =
+    process.env.EXPO_PUBLIC_PROJECT_ID ??
+    require('../app.json')?.expo?.extra?.eas?.projectId;
+
+  if (!projectId) {
+    console.log('[notifications] No projectId configured — skipping push registration');
+    return null;
+  }
+
+  const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
   const pushToken = tokenData.data;
 
   // Save to backend so the signal engine can use it

@@ -47,6 +47,7 @@ export const discoverService = {
 export const outreachService = {
   generate: (companyId, type) =>
     api.post('/api/outreach/generate', { companyId, type }),
+  getUsage: () => api.get('/api/outreach/usage'),
 };
 
 export const companyService = {

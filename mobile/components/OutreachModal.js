@@ -26,12 +26,21 @@ export default function OutreachModal({ visible, onClose, companyId, companyName
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [generated, setGenerated] = useState(false);
-  const [useCount, setUseCount] = useState(0);
+  const [useCount, setUseCount] = useState(null); // null = not yet loaded
   const { isPro } = usePurchase();
   const router = useRouter();
 
   const FREE_MONTHLY_LIMIT = 3;
-  const hitLimit = !isPro && useCount >= FREE_MONTHLY_LIMIT;
+  const hitLimit = !isPro && useCount !== null && useCount >= FREE_MONTHLY_LIMIT;
+
+  // Load current usage from backend when modal opens
+  useState(() => {
+    if (visible) {
+      outreachService.getUsage().then((res) => {
+        setUseCount(res.data.count);
+      }).catch(() => setUseCount(0));
+    }
+  }, [visible]);
 
   const handleGenerate = async () => {
     if (hitLimit) {
@@ -45,9 +54,15 @@ export default function OutreachModal({ visible, onClose, companyId, companyName
       const res = await outreachService.generate(companyId, selectedType);
       setMessage(res.data.message);
       setGenerated(true);
-      setUseCount((c) => c + 1);
+      // Update count from backend response
+      if (res.data.usage) setUseCount(res.data.usage.count);
     } catch (err) {
       const msg = err?.response?.data?.message || 'Generation failed';
+      if (err?.response?.data?.limitReached) {
+        onClose();
+        router.push('/paywall');
+        return;
+      }
       Alert.alert('Error', msg);
     } finally {
       setLoading(false);

@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema(
     mutedCompanies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Company' }],
     resetPasswordOtp: { type: String },
     resetPasswordOtpExpiry: { type: Date },
+    outreachUsage: {
+      count: { type: Number, default: 0 },
+      resetAt: { type: Date, default: Date.now }, // resets monthly
+    },
   },
   { timestamps: true }
 );
