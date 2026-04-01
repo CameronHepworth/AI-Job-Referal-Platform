@@ -122,7 +122,7 @@ function DeleteModal({ visible, onClose, onConfirm }) {
 // ---------------------------------------------------------------------------
 export default function ProfileScreen() {
   const { user, logout, updateUser } = useAuth();
-  const { isPro, purchasePackage, restorePurchases } = usePurchase();
+  const { isPro, purchasePackage, restorePurchases, devTogglePro } = usePurchase();
   const router = useRouter();
 
   const [sendingReset, setSendingReset] = useState(false);
@@ -265,10 +265,20 @@ export default function ProfileScreen() {
       </View>
 
       {/* DEV ONLY */}
-      <TouchableOpacity style={styles.devButton} onPress={handleResetOnboarding}>
-        <Ionicons name="refresh-outline" size={18} color="#6b7280" />
-        <Text style={styles.devText}>Reset Onboarding (Dev)</Text>
-      </TouchableOpacity>
+      {__DEV__ && (
+        <View style={styles.devSection}>
+          <TouchableOpacity style={styles.devButton} onPress={handleResetOnboarding}>
+            <Ionicons name="refresh-outline" size={18} color="#6b7280" />
+            <Text style={styles.devText}>Reset Onboarding (Dev)</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.devButton, { marginTop: 8 }]} onPress={devTogglePro}>
+            <Ionicons name={isPro ? 'arrow-down-circle-outline' : 'arrow-up-circle-outline'} size={18} color="#7c3aed" />
+            <Text style={[styles.devText, { color: '#7c3aed' }]}>
+              Switch to {isPro ? 'Free' : 'Pro'} (Dev)
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Sign out */}
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -385,10 +395,10 @@ const styles = StyleSheet.create({
   logoutText: { color: '#ef4444', fontSize: 15, fontWeight: '600' },
   deleteAccountBtn: { alignItems: 'center', marginTop: 16, paddingVertical: 8 },
   deleteAccountText: { color: '#9ca3af', fontSize: 13 },
+  devSection: { marginTop: 24, marginHorizontal: 20 },
   devButton: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, marginTop: 24, marginHorizontal: 20,
-    padding: 15, borderRadius: 12, backgroundColor: '#f3f4f6',
+    gap: 8, padding: 15, borderRadius: 12, backgroundColor: '#f3f4f6',
   },
   devText: { color: '#6b7280', fontSize: 14, fontWeight: '500' },
 });

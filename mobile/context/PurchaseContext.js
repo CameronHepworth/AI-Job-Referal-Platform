@@ -104,8 +104,19 @@ export function PurchaseProvider({ children }) {
     }
   };
 
+  const devTogglePro = async () => {
+    if (!__DEV__) return;
+    const next = !isPro;
+    setIsPro(next);
+    try {
+      await userService.updatePlan(next ? 'pro' : 'free');
+    } catch (err) {
+      console.warn('[dev] plan sync failed:', err.message);
+    }
+  };
+
   return (
-    <PurchaseContext.Provider value={{ isPro, offerings, loading, purchasePackage, restorePurchases }}>
+    <PurchaseContext.Provider value={{ isPro, offerings, loading, purchasePackage, restorePurchases, devTogglePro }}>
       {children}
     </PurchaseContext.Provider>
   );
