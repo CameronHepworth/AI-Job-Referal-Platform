@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -34,7 +34,7 @@ export default function OutreachModal({ visible, onClose, companyId, companyName
   const hitLimit = !isPro && useCount !== null && useCount >= FREE_MONTHLY_LIMIT;
 
   // Load current usage from backend when modal opens
-  useState(() => {
+  useEffect(() => {
     if (visible) {
       outreachService.getUsage().then((res) => {
         setUseCount(res.data.count);
