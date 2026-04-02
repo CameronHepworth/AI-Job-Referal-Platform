@@ -34,6 +34,14 @@ const userSchema = new mongoose.Schema(
       count: { type: Number, default: 0 },
       resetAt: { type: Date, default: Date.now }, // resets monthly
     },
+    resumeData: {
+      skills: [{ type: String }],
+      jobTitles: [{ type: String }],
+      industries: [{ type: String }],
+      yearsExperience: { type: Number },
+      summary: { type: String }, // 1-2 sentence background for prompts
+      uploadedAt: { type: Date },
+    },
   },
   { timestamps: true }
 );

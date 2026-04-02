@@ -10,6 +10,7 @@ const userRoutes = require('./routes/user');
 const companiesRoutes = require('./routes/companies');
 const outreachRoutes = require('./routes/outreach');
 const discoverRoutes = require('./routes/discover');
+const resumeRoutes = require('./routes/resume');
 const { startSignalCron } = require('./jobs/signalCron');
 
 const app = express();
@@ -56,6 +57,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/companies', companiesRoutes);
 app.use('/api/outreach', outreachRoutes);
 app.use('/api/discover', discoverRoutes);
+app.use('/api/resume', resumeRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

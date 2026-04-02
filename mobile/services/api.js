@@ -50,6 +50,15 @@ export const outreachService = {
   getUsage: () => api.get('/api/outreach/usage'),
 };
 
+export const resumeService = {
+  upload: (formData) =>
+    api.post('/api/resume', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 30000, // parsing can take a few seconds
+    }),
+  remove: () => api.delete('/api/resume'),
+};
+
 export const companyService = {
   search: (q) => api.get(`/api/companies/search?q=${encodeURIComponent(q)}`),
   create: (data) => api.post('/api/companies', data),

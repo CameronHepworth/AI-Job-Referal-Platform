@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Alert,
   ActivityIndicator, ScrollView, TextInput, Modal, Switch,
@@ -6,9 +6,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as DocumentPicker from 'expo-document-picker';
 import { useAuth } from '../../context/AuthContext';
 import { usePurchase } from '../../context/PurchaseContext';
-import { authService, userService } from '../../services/api';
+import { authService, userService, resumeService } from '../../services/api';
 
 // ---------------------------------------------------------------------------
 // Edit field modal — reused for name and email
@@ -130,6 +131,7 @@ export default function ProfileScreen() {
   const [editEmail, setEditEmail] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [uploadingResume, setUploadingResume] = useState(false);
 
   const handleResetOnboarding = async () => {
     await AsyncStorage.removeItem('onboarding_complete');
@@ -175,6 +177,53 @@ export default function ProfileScreen() {
     await logout();
   };
 
+  const handleUploadResume = useCallback(async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled) return;
+
+      const file = result.assets[0];
+      setUploadingResume(true);
+
+      const formData = new FormData();
+      formData.append('resume', {
+        uri: file.uri,
+        name: file.name,
+        type: 'application/pdf',
+      });
+
+      const res = await resumeService.upload(formData);
+      await updateUser({ resumeData: res.data.resumeData });
+      Alert.alert('Resume uploaded', 'Your resume has been parsed and will be used to personalise outreach messages.');
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Upload failed. Please try again.';
+      Alert.alert('Error', msg);
+    } finally {
+      setUploadingResume(false);
+    }
+  }, [updateUser]);
+
+  const handleRemoveResume = () => {
+    Alert.alert('Remove resume', 'Your resume data will be deleted and messages will no longer be personalised.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await resumeService.remove();
+            await updateUser({ resumeData: null });
+          } catch {
+            Alert.alert('Error', 'Could not remove resume. Please try again.');
+          }
+        },
+      },
+    ]);
+  };
+
   const handleLogout = () => {
     Alert.alert('Sign out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
@@ -207,6 +256,46 @@ export default function ProfileScreen() {
           onPress={handleResetPassword}
           right={sendingReset ? <ActivityIndicator size="small" color="#4f46e5" /> : null}
         />
+      </View>
+
+      {/* Resume section */}
+      <SectionHeader label="Resume" />
+      <View style={styles.menu}>
+        {user?.resumeData?.uploadedAt ? (
+          <>
+            <View style={styles.menuItem}>
+              <Ionicons name="document-text" size={20} color="#4f46e5" />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.menuLabel}>Resume uploaded</Text>
+                <Text style={styles.menuSub}>
+                  {user.resumeData.skills?.slice(0, 3).join(', ')}
+                  {user.resumeData.skills?.length > 3 ? ` +${user.resumeData.skills.length - 3} more` : ''}
+                </Text>
+              </View>
+              <View style={styles.proBadge}>
+                <Text style={styles.proBadgeText}>Active</Text>
+              </View>
+            </View>
+            <MenuRow
+              icon="cloud-upload-outline"
+              label="Replace Resume"
+              onPress={handleUploadResume}
+              right={uploadingResume ? <ActivityIndicator size="small" color="#4f46e5" /> : undefined}
+            />
+            <MenuRow icon="trash-outline" label="Remove Resume" onPress={handleRemoveResume} />
+          </>
+        ) : (
+          <TouchableOpacity style={styles.menuItem} onPress={handleUploadResume} disabled={uploadingResume}>
+            <Ionicons name="cloud-upload-outline" size={20} color="#6b7280" />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.menuLabel}>Upload Resume</Text>
+              <Text style={styles.menuSub}>PDF · personalises outreach messages</Text>
+            </View>
+            {uploadingResume
+              ? <ActivityIndicator size="small" color="#4f46e5" />
+              : <Ionicons name="chevron-forward" size={16} color="#d1d5db" />}
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Plan section */}

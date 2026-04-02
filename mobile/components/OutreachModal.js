@@ -21,11 +21,12 @@ const TYPES = [
   { key: 'followup', label: 'Follow-up', icon: 'arrow-redo-outline', description: 'After no reply' },
 ];
 
-export default function OutreachModal({ visible, onClose, companyId, companyName }) {
+export default function OutreachModal({ visible, onClose, companyId, companyName, hasResume }) {
   const [selectedType, setSelectedType] = useState('linkedin');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const [personalized, setPersonalized] = useState(false);
   const [useCount, setUseCount] = useState(null); // null = not yet loaded
   const { isPro } = usePurchase();
   const router = useRouter();
@@ -54,6 +55,7 @@ export default function OutreachModal({ visible, onClose, companyId, companyName
       const res = await outreachService.generate(companyId, selectedType);
       setMessage(res.data.message);
       setGenerated(true);
+      setPersonalized(!!res.data.personalized);
       // Update count from backend response
       if (res.data.usage) setUseCount(res.data.usage.count);
     } catch (err) {
@@ -117,6 +119,19 @@ export default function OutreachModal({ visible, onClose, companyId, companyName
             ))}
           </View>
 
+          {/* Resume personalisation hint */}
+          {hasResume ? (
+            <View style={styles.resumeBadge}>
+              <Ionicons name="document-text-outline" size={13} color="#4f46e5" />
+              <Text style={styles.resumeBadgeText}>Personalised with your resume</Text>
+            </View>
+          ) : (
+            <View style={styles.resumeBadge}>
+              <Ionicons name="information-circle-outline" size={13} color="#9ca3af" />
+              <Text style={[styles.resumeBadgeText, { color: '#9ca3af' }]}>Upload a resume in Profile to personalise messages</Text>
+            </View>
+          )}
+
           {/* Generate button */}
           {!isPro && (
             <Text style={styles.usageText}>
@@ -157,7 +172,7 @@ export default function OutreachModal({ visible, onClose, companyId, companyName
               <View style={styles.aiNotice}>
                 <Ionicons name="information-circle-outline" size={14} color="#9ca3af" />
                 <Text style={styles.aiNoticeText}>
-                  AI-generated — personalise before sending
+                  {personalized ? 'Personalised with your resume · review before sending' : 'AI-generated — personalise before sending'}
                 </Text>
               </View>
             </View>
@@ -219,6 +234,12 @@ const styles = StyleSheet.create({
   },
   generateBtnDisabled: { opacity: 0.7 },
   generateBtnLocked: { backgroundColor: '#7c3aed' },
+  resumeBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: '#ede9fe', paddingHorizontal: 10, paddingVertical: 6,
+    borderRadius: 8, marginBottom: 12, alignSelf: 'center',
+  },
+  resumeBadgeText: { fontSize: 12, color: '#4f46e5', fontWeight: '500' },
   usageText: { fontSize: 12, color: '#6b7280', textAlign: 'center', marginBottom: 10 },
   generateBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   messageCard: {

@@ -12,6 +12,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { companyService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import OutreachModal from '../../components/OutreachModal';
 
 function SignalRow({ signal }) {
@@ -63,6 +64,7 @@ function ScoreMeter({ score }) {
 export default function CompanyDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [company, setCompany] = useState(null);
   const [isWatching, setIsWatching] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -143,6 +145,7 @@ export default function CompanyDetailScreen() {
         onClose={() => setOutreachVisible(false)}
         companyId={id}
         companyName={company.name}
+        hasResume={!!user?.resumeData?.uploadedAt}
       />
 
       {/* Watch / Scan buttons */}

@@ -52,10 +52,14 @@ const TYPE_CONFIG = {
   },
 };
 
-async function generateWithClaude(type, companyName, signals, industry, senderName) {
+async function generateWithClaude(type, companyName, signals, industry, senderName, resumeData) {
   const config = TYPE_CONFIG[type];
   const signalList = signals.slice(0, 4).map((s) => `• ${s}`).join('\n');
   const industryContext = industry ? ` (${industry})` : '';
+
+  const resumeContext = resumeData?.summary
+    ? `\nSender background: ${resumeData.summary}${resumeData.skills?.length ? `\nKey skills: ${resumeData.skills.slice(0, 6).join(', ')}` : ''}`
+    : '';
 
   const systemPrompt = `You are an expert career coach helping job seekers write outreach messages that actually get responses. Your messages are specific, human, and signal-aware — they reference real company data to stand out from generic templates.`;
 
@@ -63,10 +67,10 @@ async function generateWithClaude(type, companyName, signals, industry, senderNa
 
 Here are the current hiring signals detected for this company:
 ${signalList}
-
+${resumeContext}
 Instructions:
 ${config.instructions(senderName)}
-
+${resumeData?.summary ? `- Use the sender's actual background (provided above) instead of generic placeholders like [your background] — weave it in naturally` : ''}
 Write only the message itself — no commentary, no "here's the message:", no explanation.`;
 
   const response = await client.messages.create({
@@ -143,12 +147,13 @@ router.post('/generate', protect, async (req, res) => {
     }
 
     const signalSummaries = (company.signals || []).map((s) => s.summary);
-    const message = await generateWithClaude(type, company.name, signalSummaries, company.industry, req.user.name);
+    const message = await generateWithClaude(type, company.name, signalSummaries, company.industry, req.user.name, user.resumeData);
 
     res.json({
       message,
       company: company.name,
       type,
+      personalized: !!user.resumeData?.summary,
       usage: { count: usage.count, limit: usage.limit },
     });
   } catch (err) {

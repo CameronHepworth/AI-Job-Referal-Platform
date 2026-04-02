@@ -13,6 +13,7 @@ router.get('/me', protect, (req, res) => {
       email: req.user.email,
       plan: req.user.plan,
       mutedCompanies: req.user.mutedCompanies || [],
+      resumeData: req.user.resumeData || null,
     },
   });
 });
