@@ -25,7 +25,8 @@ app.use(helmet());
 const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
 app.use(cors({ origin: allowedOrigin }));
 
-app.use(express.json({ type: '*/*' }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 // Strip $ and . from request bodies to prevent MongoDB operator injection
 app.use((req, _res, next) => {
