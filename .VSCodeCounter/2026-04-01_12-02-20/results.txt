@@ -1,0 +1,93 @@
+Date : 2026-04-01 12:02:20
+Directory : /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp
+Total : 47 files,  19073 codes, 279 comments, 594 blanks, all 19946 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| JSON       |          6 |     13,457 |          0 |          6 |     13,463 |
+| JavaScript |         41 |      5,616 |        279 |        588 |      6,483 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++-----------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                | files      | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                   |         47 |     19,073 |        279 |        594 |     19,946 |
+| backend                                                                                             |         20 |      4,986 |        209 |        301 |      5,496 |
+| backend (Files)                                                                                     |          4 |      3,551 |         14 |         20 |      3,585 |
+| backend/src                                                                                         |         16 |      1,435 |        195 |        281 |      1,911 |
+| backend/src (Files)                                                                                 |          1 |         59 |          8 |         12 |         79 |
+| backend/src/jobs                                                                                    |          1 |         14 |          4 |          4 |         22 |
+| backend/src/middleware                                                                              |          1 |         18 |          0 |          4 |         22 |
+| backend/src/models                                                                                  |          3 |        117 |          7 |         14 |        138 |
+| backend/src/routes                                                                                  |          5 |        600 |         81 |        129 |        810 |
+| backend/src/scripts                                                                                 |          1 |         99 |          9 |         14 |        122 |
+| backend/src/services                                                                                |          4 |        528 |         86 |        104 |        718 |
+| mobile                                                                                              |         27 |     14,087 |         70 |        293 |     14,450 |
+| mobile (Files)                                                                                      |          4 |      9,994 |          0 |          4 |      9,998 |
+| mobile/app                                                                                          |         17 |      3,572 |         36 |        216 |      3,824 |
+| mobile/app (Files)                                                                                  |          5 |        965 |          9 |         62 |      1,036 |
+| mobile/app/(auth)                                                                                   |          5 |        819 |          3 |         52 |        874 |
+| mobile/app/(tabs)                                                                                   |          6 |      1,492 |         24 |         86 |      1,602 |
+| mobile/app/company                                                                                  |          1 |        296 |          0 |         16 |        312 |
+| mobile/components                                                                                   |          1 |        243 |          2 |         14 |        259 |
+| mobile/constants                                                                                    |          1 |         12 |          3 |          5 |         20 |
+| mobile/context                                                                                      |          2 |        151 |         15 |         28 |        194 |
+| mobile/services                                                                                     |          2 |        115 |         14 |         26 |        155 |
++-----------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-----------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                            | language   | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/package-lock 2.json             | JSON       |      1,592 |          0 |          1 |      1,593 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/package-lock.json               | JSON       |      1,849 |          0 |          1 |      1,850 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/package.json                    | JSON       |         28 |          0 |          1 |         29 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/index.js                    | JavaScript |         59 |          8 |         12 |         79 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/jobs/signalCron.js          | JavaScript |         14 |          4 |          4 |         22 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/middleware/auth.js          | JavaScript |         18 |          0 |          4 |         22 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/models/Alert.js             | JavaScript |         21 |          0 |          4 |         25 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/models/Company.js           | JavaScript |         49 |          5 |          5 |         59 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/models/User.js              | JavaScript |         47 |          2 |          5 |         54 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/routes/auth.js              | JavaScript |        106 |          8 |         25 |        139 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/routes/companies.js         | JavaScript |        173 |         35 |         32 |        240 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/routes/discover.js          | JavaScript |         89 |         13 |         23 |        125 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/routes/outreach.js          | JavaScript |        139 |         13 |         31 |        183 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/routes/user.js              | JavaScript |         93 |         12 |         18 |        123 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/scripts/seedCompanies.js    | JavaScript |         99 |          9 |         14 |        122 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/services/companyEnricher.js | JavaScript |         79 |         23 |         15 |        117 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/services/emailService.js    | JavaScript |         40 |          0 |          5 |         45 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/services/pushService.js     | JavaScript |         37 |         11 |          9 |         57 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/src/services/signalEngine.js    | JavaScript |        372 |         52 |         75 |        499 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/backend/test.js                         | JavaScript |         82 |         14 |         17 |        113 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app.json                         | JSON       |         39 |          0 |          1 |         40 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/(auth)/_layout.js            | JavaScript |         11 |          0 |          2 |         13 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/(auth)/forgot-password.js    | JavaScript |        139 |          1 |         10 |        150 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/(auth)/login.js              | JavaScript |        197 |          0 |         12 |        209 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/(auth)/register.js           | JavaScript |        231 |          0 |         13 |        244 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/(auth)/reset-password.js     | JavaScript |        241 |          2 |         15 |        258 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/(tabs)/_layout.js            | JavaScript |         66 |          0 |          2 |         68 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/(tabs)/alerts.js             | JavaScript |        161 |          1 |         11 |        173 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/(tabs)/explore.js            | JavaScript |        254 |          3 |         12 |        269 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/(tabs)/firmsearch.js         | JavaScript |        451 |         10 |         22 |        483 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/(tabs)/index.js              | JavaScript |        161 |          1 |         11 |        173 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/(tabs)/profile.js            | JavaScript |        399 |          9 |         28 |        436 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/_layout.js                   | JavaScript |         59 |          4 |         10 |         73 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/company/[id].js              | JavaScript |        296 |          0 |         16 |        312 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/onboarding.js                | JavaScript |        214 |          0 |         14 |        228 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/paywall.js                   | JavaScript |        226 |          2 |         15 |        243 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/reset-password.js            | JavaScript |        241 |          2 |         15 |        258 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/app/search.js                    | JavaScript |        225 |          1 |          8 |        234 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/babel.config.js                  | JavaScript |          6 |          0 |          1 |          7 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/components/OutreachModal.js      | JavaScript |        243 |          2 |         14 |        259 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/constants/Config.js              | JavaScript |         12 |          3 |          5 |         20 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/context/AuthContext.js           | JavaScript |         54 |          3 |         11 |         68 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/context/PurchaseContext.js       | JavaScript |         97 |         12 |         17 |        126 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/package-lock.json                | JSON       |      9,914 |          0 |          1 |      9,915 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/package.json                     | JSON       |         35 |          0 |          1 |         36 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/services/api.js                  | JavaScript |         53 |          1 |         12 |         66 |
+| /Users/cameronhepworth/Documents/GitHub/ClaudeApp/ClaudeApp/mobile/services/notifications.js        | JavaScript |         62 |         13 |         14 |         89 |
+| Total                                                                                               |            |     19,073 |        279 |        594 |     19,946 |
++-----------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
