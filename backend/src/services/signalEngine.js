@@ -473,19 +473,32 @@ async function createAlertsForWatchers(company, score, summary) {
 async function runSignalScan() {
   console.log('[signalEngine] Starting full scan...');
 
+  const cutoff = new Date(Date.now() - 20 * 60 * 60 * 1000);
+
+  // Always scan watched companies
   const watchedIds = await User.distinct('watchlist');
-  if (!watchedIds.length) {
-    console.log('[signalEngine] No watched companies, skipping.');
+
+  // Also scan up to 50 unscanned/stale companies from DB so discover scores populate over time
+  const unseenCompanies = await Company.find({
+    _id: { $nin: watchedIds },
+    $or: [{ lastScanned: { $lt: cutoff } }, { lastScanned: null }],
+  }).limit(50);
+
+  const watchedCompanies = watchedIds.length
+    ? await Company.find({
+        _id: { $in: watchedIds },
+        $or: [{ lastScanned: { $lt: cutoff } }, { lastScanned: null }],
+      })
+    : [];
+
+  const companies = [...watchedCompanies, ...unseenCompanies];
+
+  if (!companies.length) {
+    console.log('[signalEngine] All companies up to date, skipping.');
     return;
   }
 
-  const cutoff = new Date(Date.now() - 20 * 60 * 60 * 1000);
-  const companies = await Company.find({
-    _id: { $in: watchedIds },
-    $or: [{ lastScanned: { $lt: cutoff } }, { lastScanned: null }],
-  });
-
-  console.log(`[signalEngine] Scanning ${companies.length} companies.`);
+  console.log(`[signalEngine] Scanning ${companies.length} companies (${watchedCompanies.length} watched, ${unseenCompanies.length} discovery).`);
 
   for (const company of companies) {
     await scanCompany(company);

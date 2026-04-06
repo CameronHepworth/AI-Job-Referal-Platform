@@ -3,6 +3,7 @@ const axios = require('axios');
 const Company = require('../models/Company');
 const { protect } = require('../middleware/auth');
 const { enrichCompany } = require('../services/companyEnricher');
+const { scanCompany } = require('../services/signalEngine');
 
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -106,6 +107,26 @@ router.post('/', protect, async (req, res) => {
 
       merged.push(company.toObject ? company.toObject() : company);
       if (merged.length >= 25) break;
+    }
+
+    // Background scan companies that haven't been scanned in 24h
+    // so score filters work on subsequent searches
+    const staleThreshold = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const toScan = merged
+      .filter((c) => !c.lastScanned || new Date(c.lastScanned) < staleThreshold)
+      .slice(0, 5); // cap at 5 per request to avoid overloading
+
+    if (toScan.length > 0) {
+      (async () => {
+        for (const c of toScan) {
+          try {
+            const doc = await Company.findById(c._id);
+            if (doc) await scanCompany(doc);
+          } catch (err) {
+            console.error('[discover] bg scan error:', err.message);
+          }
+        }
+      })();
     }
 
     res.json({ companies: merged });
