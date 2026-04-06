@@ -6,7 +6,6 @@ const User = require('../models/User');
 
 const router = express.Router();
 
-// Store PDF in memory (no disk I/O needed — we just parse and discard)
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max
@@ -24,31 +23,47 @@ function runMulter(req, res) {
   });
 }
 
-async function parsePdf(buffer) {
-  // Import inline to avoid pdf-parse test-file side-effect on require
-  const pdfParse = require('pdf-parse/lib/pdf-parse.js');
-  const result = await pdfParse(buffer);
-  return result.text;
-}
-
-async function parseResumeWithClaude(rawText) {
-  const prompt = `Extract structured information from this resume text and return ONLY valid JSON with these exact fields:
+// Send PDF buffer directly to Claude — no pdf-parse needed, works on scanned PDFs too
+async function parseResumeWithClaude(pdfBuffer) {
+  const response = await client.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 512,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'document',
+            source: {
+              type: 'base64',
+              media_type: 'application/pdf',
+              data: pdfBuffer.toString('base64'),
+            },
+          },
+          {
+            type: 'text',
+            text: `Extract structured information from this resume and return ONLY valid JSON with these exact fields:
 
 {
   "skills": ["skill1", "skill2"],
   "jobTitles": ["title1", "title2"],
   "industries": ["industry1"],
   "yearsExperience": 5,
-  "summary": "1-2 sentences describing their background in third person for use in outreach messages (e.g. a software engineer with 5 years in fintech...)"
+  "summary": "1-2 sentences describing their background in third person for outreach messages (e.g. a software engineer with 5 years in fintech...)"
 }
 
-Resume text:
-${rawText.slice(0, 6000)}`;
+Rules:
+- skills: top 8 technical/professional skills
+- jobTitles: most recent first, max 4
+- industries: max 3
+- yearsExperience: total years as a number (estimate if not explicit)
+- summary: natural, copy-paste ready sentence for outreach
 
-  const response = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 512,
-    messages: [{ role: 'user', content: prompt }],
+Return only the JSON, no explanation.`,
+          },
+        ],
+      },
+    ],
   });
 
   const text = response.content[0].text.trim();
@@ -60,7 +75,6 @@ ${rawText.slice(0, 6000)}`;
 // POST /api/resume — upload and parse a PDF resume
 // ---------------------------------------------------------------------------
 router.post('/', protect, async (req, res) => {
-  // Run multer and catch its errors (size limit, wrong field name, etc.)
   try {
     await runMulter(req, res);
   } catch (err) {
@@ -76,39 +90,22 @@ router.post('/', protect, async (req, res) => {
       return res.status(400).json({ message: 'No file received. Make sure you are uploading a PDF.' });
     }
 
-    console.log('[resume] received file:', req.file.originalname, req.file.mimetype, req.file.size);
-
     if (req.file.mimetype !== 'application/pdf') {
       return res.status(400).json({ message: 'Only PDF files are supported.' });
     }
 
-    // Extract text from PDF buffer
-    let rawText;
-    try {
-      rawText = await parsePdf(req.file.buffer);
-    } catch (err) {
-      console.error('[resume] pdf-parse error:', err.message);
-      return res.status(400).json({ message: 'Could not read PDF. Try a different file.' });
-    }
+    console.log('[resume] received:', req.file.originalname, req.file.size, 'bytes');
 
-    if (!rawText || rawText.trim().length < 100) {
-      return res.status(400).json({ message: 'Could not extract text from PDF. Try a text-based PDF (not a scanned image).' });
-    }
-
-    console.log('[resume] extracted text length:', rawText.length);
-
-    // Parse with Claude
     let parsed;
     try {
-      parsed = await parseResumeWithClaude(rawText);
+      parsed = await parseResumeWithClaude(req.file.buffer);
     } catch (err) {
       console.error('[resume] Claude parse error:', err.message);
       return res.status(500).json({ message: 'Could not parse resume. Please try again.' });
     }
 
-    console.log('[resume] parsed successfully:', JSON.stringify(parsed).slice(0, 200));
+    console.log('[resume] parsed:', JSON.stringify(parsed).slice(0, 200));
 
-    // Save to user
     const user = await User.findById(req.user._id);
     user.resumeData = {
       skills: parsed.skills || [],
@@ -122,7 +119,7 @@ router.post('/', protect, async (req, res) => {
 
     res.json({ resumeData: user.resumeData });
   } catch (err) {
-    console.error('[resume] upload error:', err.message, err.stack);
+    console.error('[resume] upload error:', err.message);
     res.status(500).json({ message: 'Upload failed. Please try again.' });
   }
 });
