@@ -103,7 +103,7 @@ function ScoreBadge({ score }) {
 const SIZE_LABELS = { startup: 'Startup', smb: 'SMB', mid: 'Mid-size', enterprise: 'Enterprise' };
 const JOB_TYPE_LABELS = { engineering: 'Engineering', sales: 'Sales', design: 'Design', marketing: 'Marketing', operations: 'Operations', finance: 'Finance', legal: 'Legal' };
 
-function CompanyCard({ company, onWatch, onPress, watching }) {
+function CompanyCard({ company, onWatch, onPress, watching, isPro }) {
   // Build the full tag list from all available fields
   const allTags = [
     company.industry,
@@ -122,7 +122,7 @@ function CompanyCard({ company, onWatch, onPress, watching }) {
         </View>
         <View style={styles.cardInfo}>
           <Text style={styles.cardName}>{company.name}</Text>
-          {company.hiringScore > 0 && <ScoreBadge score={company.hiringScore} />}
+          {isPro && company.hiringScore > 0 && <ScoreBadge score={company.hiringScore} />}
           <View style={styles.tagWrap}>
             {allTags.map((tag) => (
               <View
@@ -340,6 +340,7 @@ export default function FirmSearchScreen() {
               onWatch={handleWatch}
               onPress={() => router.push(`/company/${item._id}`)}
               watching={watching}
+              isPro={isPro}
             />
           )}
         />
