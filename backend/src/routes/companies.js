@@ -136,7 +136,8 @@ router.post('/:id/scan', protect, async (req, res) => {
 router.get('/watchlist/me', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate('watchlist').lean();
-    res.json({ watchlist: user.watchlist });
+    const sorted = (user.watchlist || []).sort((a, b) => (b.hiringScore || 0) - (a.hiringScore || 0));
+    res.json({ watchlist: sorted });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
