@@ -8,6 +8,23 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+async function searchClearbit(q) {
+  try {
+    const res = await axios.get('https://autocomplete.clearbit.com/v1/companies/suggest', {
+      params: { query: q },
+      timeout: 5000,
+    });
+    return (res.data || []).slice(0, 10).map((c) => ({
+      name: c.name,
+      domain: c.domain,
+      logoUrl: c.logo || null,
+    }));
+  } catch (err) {
+    console.error('[discover] Clearbit error:', err.message);
+    return [];
+  }
+}
+
 const router = express.Router();
 
 /**
@@ -58,64 +75,40 @@ router.post('/', protect, async (req, res) => {
     let projection = {};
     if (query) projection = { score: { $meta: 'textScore' } };
 
-    let localResults = await Company.find(dbFilter, projection)
-      .sort(query ? { score: { $meta: 'textScore' } } : { hiringScore: -1 })
-      .limit(20)
-      .lean();
+    // Run local DB and Clearbit (when query provided) in parallel
+    const [localResults, clearbitResults] = await Promise.all([
+      Company.find(dbFilter, projection)
+        .sort(query ? { score: { $meta: 'textScore' } } : { hiringScore: -1 })
+        .limit(20)
+        .lean(),
+      query ? searchClearbit(query) : Promise.resolve([]),
+    ]);
 
-    // ---------------------------------------------------------------------------
-    // 2. JSearch fallback if not enough local results and a query/jobType provided
-    // ---------------------------------------------------------------------------
-    if (localResults.length < 5 && (query || jobType)) {
-      const searchQuery = [query, jobType, 'jobs'].filter(Boolean).join(' ');
-      const apiKey = process.env.JSEARCH_API_KEY;
+    // Merge Clearbit results not already in local DB
+    const seen = new Set(localResults.map((c) => c.name.toLowerCase()));
+    const merged = [...localResults];
 
-      if (apiKey) {
-        try {
-          const jRes = await axios.get('https://jsearch.p.rapidapi.com/search', {
-            params: { query: searchQuery, page: '1', num_pages: '1' },
-            headers: {
-              'x-rapidapi-key': apiKey,
-              'x-rapidapi-host': 'jsearch.p.rapidapi.com',
-            },
-            timeout: 8000,
-          });
+    for (const ext of clearbitResults) {
+      if (seen.has(ext.name.toLowerCase())) continue;
+      seen.add(ext.name.toLowerCase());
 
-          const jobs = jRes.data.data || [];
-          const seen = new Set(localResults.map((c) => c.name.toLowerCase()));
-
-          for (const job of jobs) {
-            const name = job.employer_name;
-            if (!name || seen.has(name.toLowerCase())) continue;
-
-            // Apply size filter heuristically if provided
-            if (size && job.employer_company_type) {
-              const type = job.employer_company_type.toLowerCase();
-              if (size === 'startup' && !type.includes('startup')) continue;
-              if (size === 'enterprise' && type.includes('startup')) continue;
-            }
-
-            seen.add(name.toLowerCase());
-
-            // Upsert into DB so future searches are faster
-            let company = await Company.findOne({ name: new RegExp(`^${escapeRegex(name)}$`, 'i') });
-            if (!company) {
-              company = await Company.create({ name, logoUrl: job.employer_logo || null });
-              await enrichCompany(company);
-            } else if (!company.size) {
-              await enrichCompany(company);
-            }
-
-            localResults.push(company.toObject());
-            if (localResults.length >= 20) break;
-          }
-        } catch (err) {
-          console.error('[discover] JSearch error:', err.message);
-        }
+      let company = await Company.findOne({ name: new RegExp(`^${escapeRegex(ext.name)}$`, 'i') });
+      if (!company) {
+        company = await Company.create({ name: ext.name, domain: ext.domain, logoUrl: ext.logoUrl });
+        enrichCompany(company).catch(() => {});
       }
+
+      // Apply remaining filters to external results
+      if (industry && !company.industry?.match(new RegExp(escapeRegex(industry), 'i'))) continue;
+      if (size && company.size && company.size !== size) continue;
+      if (hiringOnly && !company.hiringScore) continue;
+      if (minScore && (company.hiringScore || 0) < Number(minScore)) continue;
+
+      merged.push(company.toObject ? company.toObject() : company);
+      if (merged.length >= 25) break;
     }
 
-    res.json({ companies: localResults });
+    res.json({ companies: merged });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }

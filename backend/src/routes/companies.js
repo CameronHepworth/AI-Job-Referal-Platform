@@ -17,43 +17,22 @@ const router = express.Router();
 const FREE_WATCHLIST_LIMIT = 5;
 
 /**
- * Query JSearch for employer names matching the query.
- * Returns an array of unique company names found in job postings.
+ * Search Clearbit's free autocomplete API — covers millions of companies,
+ * no API key required. Returns name, domain, and logo.
  */
-async function searchExternalCompanies(q) {
-  const apiKey = process.env.JSEARCH_API_KEY;
-  if (!apiKey) return [];
-
+async function searchClearbit(q) {
   try {
-    const res = await axios.get('https://jsearch.p.rapidapi.com/search', {
-      params: { query: `${q} jobs`, page: '1', num_pages: '1' },
-      headers: {
-        'x-rapidapi-key': apiKey,
-        'x-rapidapi-host': 'jsearch.p.rapidapi.com',
-      },
-      timeout: 8000,
+    const res = await axios.get('https://autocomplete.clearbit.com/v1/companies/suggest', {
+      params: { query: q },
+      timeout: 5000,
     });
-
-    const jobs = res.data.data || [];
-    // Extract unique employer names that loosely match the query
-    const seen = new Set();
-    const matches = [];
-    const qLower = q.toLowerCase();
-
-    for (const job of jobs) {
-      const employer = job.employer_name;
-      if (!employer || seen.has(employer)) continue;
-      if (employer.toLowerCase().includes(qLower) || qLower.includes(employer.toLowerCase().split(' ')[0].toLowerCase())) {
-        seen.add(employer);
-        matches.push({
-          name: employer,
-          logoUrl: job.employer_logo || null,
-        });
-      }
-    }
-    return matches.slice(0, 5);
+    return (res.data || []).slice(0, 8).map((c) => ({
+      name: c.name,
+      domain: c.domain,
+      logoUrl: c.logo || null,
+    }));
   } catch (err) {
-    console.error('[search] JSearch fallback error:', err.message);
+    console.error('[search] Clearbit error:', err.message);
     return [];
   }
 }
@@ -64,36 +43,36 @@ router.get('/search', protect, async (req, res) => {
     const q = req.query.q?.trim();
     if (!q) return res.status(400).json({ message: 'Query is required' });
 
-    // 1. Search local DB first (fast)
-    let results = await Company.find(
-      { $text: { $search: q } },
-      { score: { $meta: 'textScore' } }
-    )
-      .sort({ score: { $meta: 'textScore' } })
-      .limit(10)
-      .lean();
+    // Run local DB search and Clearbit in parallel
+    const [localResults, clearbitResults] = await Promise.all([
+      Company.find({ $text: { $search: q } }, { score: { $meta: 'textScore' } })
+        .sort({ score: { $meta: 'textScore' } })
+        .limit(10)
+        .lean(),
+      searchClearbit(q),
+    ]);
 
-    // 2. If no local results, fall back to JSearch and auto-create the companies
-    if (results.length === 0) {
-      const external = await searchExternalCompanies(q);
-      for (const ext of external) {
-        const existing = await Company.findOne({ name: new RegExp(`^${escapeRegex(ext.name)}$`, 'i') });
-        if (existing) {
-          // Enrich if missing metadata
-          if (!existing.size) {
-            await enrichCompany(existing);
-          }
-          results.push(existing.toObject());
-        } else {
-          const created = await Company.create({ name: ext.name, logoUrl: ext.logoUrl });
-          await enrichCompany(created);
-          results.push(created.toObject());
-        }
+    // Merge: start with local results, add Clearbit companies not already present
+    const results = [...localResults];
+    const seen = new Set(localResults.map((c) => c.name.toLowerCase()));
+
+    for (const ext of clearbitResults) {
+      if (seen.has(ext.name.toLowerCase())) continue;
+      seen.add(ext.name.toLowerCase());
+
+      // Check if it exists under a slightly different case
+      let company = await Company.findOne({ name: new RegExp(`^${escapeRegex(ext.name)}$`, 'i') });
+      if (!company) {
+        // Create and enrich in background — don't block the response
+        company = await Company.create({ name: ext.name, domain: ext.domain, logoUrl: ext.logoUrl });
+        enrichCompany(company).catch(() => {});
       }
+      results.push(company.toObject ? company.toObject() : company);
     }
 
-    res.json({ companies: results });
+    res.json({ companies: results.slice(0, 15) });
   } catch (err) {
+    console.error('[search] error:', err.message);
     res.status(500).json({ message: 'Server error' });
   }
 });
