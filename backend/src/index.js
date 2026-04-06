@@ -12,6 +12,7 @@ const outreachRoutes = require('./routes/outreach');
 const discoverRoutes = require('./routes/discover');
 const resumeRoutes = require('./routes/resume');
 const { startSignalCron } = require('./jobs/signalCron');
+const { runSignalScan } = require('./services/signalEngine');
 
 const app = express();
 
@@ -62,6 +63,17 @@ app.use('/api/resume', resumeRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// Admin-only: trigger a full signal scan immediately
+// Protected by ADMIN_SECRET env var — call with ?secret=YOUR_SECRET
+app.post('/api/admin/scan', async (req, res) => {
+  const secret = req.query.secret || req.body.secret;
+  if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  res.json({ message: 'Scan started in background' });
+  runSignalScan().catch((err) => console.error('[admin] scan error:', err.message));
 });
 
 // Connect to MongoDB and start server

@@ -109,12 +109,11 @@ router.post('/', protect, async (req, res) => {
       if (merged.length >= 25) break;
     }
 
-    // Background scan companies that haven't been scanned in 24h
-    // so score filters work on subsequent searches
+    // Background scan stale/unscanned companies so scores populate for future requests
     const staleThreshold = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const toScan = merged
       .filter((c) => !c.lastScanned || new Date(c.lastScanned) < staleThreshold)
-      .slice(0, 5); // cap at 5 per request to avoid overloading
+      .slice(0, 5);
 
     if (toScan.length > 0) {
       (async () => {
@@ -127,6 +126,19 @@ router.post('/', protect, async (req, res) => {
           }
         }
       })();
+    }
+
+    // If score filter is active but results are empty, it means companies haven't been scanned yet.
+    // Also kick off scans for unscanned companies not in this result set.
+    if ((minScore || hiringOnly) && merged.length === 0) {
+      const unscanned = await Company.find({ lastScanned: null }).limit(10);
+      if (unscanned.length > 0) {
+        (async () => {
+          for (const c of unscanned) {
+            try { await scanCompany(c); } catch {}
+          }
+        })();
+      }
     }
 
     res.json({ companies: merged });
