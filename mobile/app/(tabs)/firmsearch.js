@@ -194,7 +194,9 @@ export default function FirmSearchScreen() {
       });
       setResults(res.data.companies);
     } catch (err) {
-      Alert.alert('Error', 'Search failed. Please try again.');
+      const detail = err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Unknown error';
+      console.error('[discover] search error:', detail, err?.response?.status);
+      Alert.alert('Search Failed', detail);
     } finally {
       setLoading(false);
     }
