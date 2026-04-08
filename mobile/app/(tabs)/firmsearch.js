@@ -15,6 +15,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { discoverService, companyService } from '../../services/api';
 import { usePurchase } from '../../context/PurchaseContext';
+import { useTheme } from '../../context/ThemeContext';
 
 // ---------------------------------------------------------------------------
 // Filter options
@@ -59,22 +60,22 @@ const SCORE_FILTERS = [
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
-function FilterChip({ label, active, onPress }) {
+function FilterChip({ label, active, onPress, colors }) {
   return (
     <TouchableOpacity
-      style={[styles.chip, active && styles.chipActive]}
+      style={[styles.chip, { backgroundColor: colors.surfaceSecondary, borderColor: colors.borderStrong }, active && styles.chipActive]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
+      <Text style={[styles.chipText, { color: colors.textSecondary }, active && styles.chipTextActive]}>{label}</Text>
     </TouchableOpacity>
   );
 }
 
-function FilterSection({ title, options, selected, onSelect }) {
+function FilterSection({ title, options, selected, onSelect, colors }) {
   return (
     <View style={styles.filterSection}>
-      <Text style={styles.filterLabel}>{title}</Text>
+      <Text style={[styles.filterLabel, { color: colors.textMuted }]}>{title}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
         {options.map((o) => (
           <FilterChip
@@ -82,6 +83,7 @@ function FilterSection({ title, options, selected, onSelect }) {
             label={o.label}
             active={selected === o.value}
             onPress={() => onSelect(o.value)}
+            colors={colors}
           />
         ))}
       </ScrollView>
@@ -104,7 +106,7 @@ function ScoreBadge({ score }) {
 const SIZE_LABELS = { startup: 'Startup', smb: 'SMB', mid: 'Mid-size', enterprise: 'Enterprise' };
 const JOB_TYPE_LABELS = { engineering: 'Engineering', sales: 'Sales', design: 'Design', marketing: 'Marketing', operations: 'Operations', finance: 'Finance', legal: 'Legal' };
 
-function CompanyCard({ company, onWatch, onPress, watching, isPro }) {
+function CompanyCard({ company, onWatch, onPress, watching, isPro, colors }) {
   // Build the full tag list from all available fields
   const allTags = [
     company.industry,
@@ -116,13 +118,13 @@ function CompanyCard({ company, onWatch, onPress, watching, isPro }) {
   ].filter(Boolean);
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={[styles.card, { backgroundColor: colors.surface }]} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.cardLeft}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{company.name[0].toUpperCase()}</Text>
+        <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
+          <Text style={[styles.avatarText, { color: colors.primary }]}>{company.name[0].toUpperCase()}</Text>
         </View>
         <View style={styles.cardInfo}>
-          <Text style={styles.cardName}>{company.name}</Text>
+          <Text style={[styles.cardName, { color: colors.text }]}>{company.name}</Text>
           {isPro && company.hiringScore > 0 && <ScoreBadge score={company.hiringScore} />}
           <View style={styles.tagWrap}>
             {allTags.map((tag) => (
@@ -130,15 +132,17 @@ function CompanyCard({ company, onWatch, onPress, watching, isPro }) {
                 key={tag}
                 style={[
                   styles.tag,
-                  tag === 'Remote' && styles.tagRemote,
-                  tag.includes('signal') && styles.tagSignal,
+                  { backgroundColor: colors.surfaceSecondary },
+                  tag === 'Remote' && { backgroundColor: '#dcfce7' },
+                  tag.includes('signal') && { backgroundColor: colors.primaryLight },
                 ]}
               >
                 <Text
                   style={[
                     styles.tagText,
+                    { color: colors.textSecondary },
                     tag === 'Remote' && { color: '#16a34a' },
-                    tag.includes('signal') && { color: '#4f46e5' },
+                    tag.includes('signal') && { color: colors.primary },
                   ]}
                 >
                   {tag}
@@ -154,9 +158,9 @@ function CompanyCard({ company, onWatch, onPress, watching, isPro }) {
         disabled={watching === company._id}
       >
         {watching === company._id ? (
-          <ActivityIndicator size="small" color="#4f46e5" />
+          <ActivityIndicator size="small" color={colors.primary} />
         ) : (
-          <Ionicons name="add-circle-outline" size={26} color="#4f46e5" />
+          <Ionicons name="add-circle-outline" size={26} color={colors.primary} />
         )}
       </TouchableOpacity>
     </TouchableOpacity>
@@ -169,6 +173,7 @@ function CompanyCard({ company, onWatch, onPress, watching, isPro }) {
 export default function FirmSearchScreen() {
   const router = useRouter();
   const { isPro } = usePurchase();
+  const { colors } = useTheme();
   const [query, setQuery] = useState('');
   const [industry, setIndustry] = useState(null);
   const [size, setSize] = useState(null);
@@ -228,15 +233,15 @@ export default function FirmSearchScreen() {
   const hasActiveFilters = industry || size || jobType || minScore || hiringOnly;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Search bar */}
-      <View style={styles.searchBar}>
-        <View style={styles.inputWrap}>
-          <Ionicons name="search-outline" size={18} color="#9ca3af" />
+      <View style={[styles.searchBar, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <View style={[styles.inputWrap, { backgroundColor: colors.surfaceSecondary }]}>
+          <Ionicons name="search-outline" size={18} color={colors.textMuted} />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: colors.text }]}
             placeholder="Search firms by name..."
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.textMuted}
             value={query}
             onChangeText={setQuery}
             onSubmitEditing={handleSearch}
@@ -244,50 +249,47 @@ export default function FirmSearchScreen() {
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery('')}>
-              <Ionicons name="close-circle" size={16} color="#9ca3af" />
+              <Ionicons name="close-circle" size={16} color={colors.textMuted} />
             </TouchableOpacity>
           )}
         </View>
-        <TouchableOpacity style={styles.searchBtn} onPress={handleSearch}>
+        <TouchableOpacity style={[styles.searchBtn, { backgroundColor: colors.primary }]} onPress={handleSearch}>
           <Text style={styles.searchBtnText}>Search</Text>
         </TouchableOpacity>
       </View>
 
       {/* Filters toggle */}
-      <TouchableOpacity style={styles.filtersToggle} onPress={() => setFiltersOpen((v) => !v)}>
+      <TouchableOpacity style={[styles.filtersToggle, { backgroundColor: colors.surface, borderBottomColor: colors.border }]} onPress={() => setFiltersOpen((v) => !v)}>
         <View style={styles.filtersToggleLeft}>
-          <Ionicons name="options-outline" size={16} color="#4f46e5" />
-          <Text style={styles.filtersToggleText}>Filters</Text>
-          {hasActiveFilters && (
-            <View style={styles.activeDot} />
-          )}
+          <Ionicons name="options-outline" size={16} color={colors.primary} />
+          <Text style={[styles.filtersToggleText, { color: colors.primary }]}>Filters</Text>
+          {hasActiveFilters && <View style={[styles.activeDot, { backgroundColor: colors.primary }]} />}
         </View>
-        <Ionicons name={filtersOpen ? 'chevron-up' : 'chevron-down'} size={16} color="#9ca3af" />
+        <Ionicons name={filtersOpen ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textMuted} />
       </TouchableOpacity>
 
       {filtersOpen && (
-        <View style={styles.filtersPanel}>
-          <FilterSection title="Industry" options={INDUSTRIES} selected={industry} onSelect={setIndustry} />
-          <FilterSection title="Firm Size" options={SIZES} selected={size} onSelect={setSize} />
-          <FilterSection title="Job Type" options={JOB_TYPES} selected={jobType} onSelect={setJobType} />
-          {/* Hiring Activity — Pro only */}
+        <View style={[styles.filtersPanel, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+          <FilterSection title="Industry" options={INDUSTRIES} selected={industry} onSelect={setIndustry} colors={colors} />
+          <FilterSection title="Firm Size" options={SIZES} selected={size} onSelect={setSize} colors={colors} />
+          <FilterSection title="Job Type" options={JOB_TYPES} selected={jobType} onSelect={setJobType} colors={colors} />
           {isPro ? (
             <>
-              <FilterSection title="Hiring Activity" options={SCORE_FILTERS} selected={minScore} onSelect={setMinScore} />
+              <FilterSection title="Hiring Activity" options={SCORE_FILTERS} selected={minScore} onSelect={setMinScore} colors={colors} />
               <View style={styles.filterSection}>
-                <Text style={styles.filterLabel}>Quick Filters</Text>
+                <Text style={[styles.filterLabel, { color: colors.textMuted }]}>Quick Filters</Text>
                 <TouchableOpacity
-                  style={[styles.chip, hiringOnly && styles.chipActive]}
+                  style={[styles.chip, { backgroundColor: colors.surfaceSecondary, borderColor: colors.borderStrong }, hiringOnly && styles.chipActive]}
                   onPress={() => setHiringOnly((v) => !v)}
                 >
-                  <Ionicons name="trending-up" size={13} color={hiringOnly ? '#fff' : '#6b7280'} />
-                  <Text style={[styles.chipText, hiringOnly && styles.chipTextActive]}> Active Hiring</Text>
+                  <Ionicons name="trending-up" size={13} color={hiringOnly ? '#fff' : colors.textSecondary} />
+                  <Text style={[styles.chipText, { color: colors.textSecondary }, hiringOnly && styles.chipTextActive]}> Active Hiring</Text>
                 </TouchableOpacity>
               </View>
             </>
           ) : (
             <TouchableOpacity style={styles.filterSection} onPress={() => router.push('/paywall')}>
-              <Text style={styles.filterLabel}>Hiring Activity</Text>
+              <Text style={[styles.filterLabel, { color: colors.textMuted }]}>Hiring Activity</Text>
               <View style={styles.proGateRow}>
                 <Ionicons name="lock-closed" size={13} color="#7c3aed" />
                 <Text style={styles.proGateText}>Filter by hiring score — Pro only</Text>
@@ -297,7 +299,6 @@ export default function FirmSearchScreen() {
               </View>
             </TouchableOpacity>
           )}
-
           {hasActiveFilters && (
             <TouchableOpacity onPress={clearFilters} style={styles.clearBtn}>
               <Text style={styles.clearBtnText}>Clear all filters</Text>
@@ -309,8 +310,8 @@ export default function FirmSearchScreen() {
       {/* Results */}
       {loading ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#4f46e5" />
-          <Text style={styles.loadingText}>Searching firms...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textMuted }]}>Searching firms...</Text>
         </View>
       ) : (
         <FlatList
@@ -321,21 +322,21 @@ export default function FirmSearchScreen() {
           ListEmptyComponent={
             searched ? (
               <View style={styles.empty}>
-                <Ionicons name="business-outline" size={48} color="#d1d5db" />
-                <Text style={styles.emptyTitle}>No firms found</Text>
-                <Text style={styles.emptyText}>Try adjusting your filters or search term</Text>
+                <Ionicons name="business-outline" size={48} color={colors.borderStrong} />
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>No firms found</Text>
+                <Text style={[styles.emptyText, { color: colors.textMuted }]}>Try adjusting your filters or search term</Text>
               </View>
             ) : (
               <View style={styles.empty}>
-                <Ionicons name="compass-outline" size={48} color="#d1d5db" />
-                <Text style={styles.emptyTitle}>Discover firms</Text>
-                <Text style={styles.emptyText}>Use the filters above to find companies that match what you're looking for</Text>
+                <Ionicons name="compass-outline" size={48} color={colors.borderStrong} />
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>Discover firms</Text>
+                <Text style={[styles.emptyText, { color: colors.textMuted }]}>Use the filters above to find companies that match what you're looking for</Text>
               </View>
             )
           }
           ListHeaderComponent={
             results.length > 0 ? (
-              <Text style={styles.resultsCount}>{results.length} firm{results.length > 1 ? 's' : ''} found</Text>
+              <Text style={[styles.resultsCount, { color: colors.textMuted }]}>{results.length} firm{results.length > 1 ? 's' : ''} found</Text>
             ) : null
           }
           renderItem={({ item }) => (
@@ -345,6 +346,7 @@ export default function FirmSearchScreen() {
               onPress={() => router.push(`/company/${item._id}`)}
               watching={watching}
               isPro={isPro}
+              colors={colors}
             />
           )}
         />
