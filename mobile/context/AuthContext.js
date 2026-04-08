@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authService } from '../services/api';
 
@@ -25,6 +26,15 @@ export function AuthProvider({ children }) {
         setLoading(false);
       }
     })();
+  }, []);
+
+  // Listen for 401 from API interceptor — auto logout expired sessions
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('auth:logout', () => {
+      setToken(null);
+      setUser(null);
+    });
+    return () => sub.remove();
   }, []);
 
   const login = async (email, password) => {

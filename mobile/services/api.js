@@ -17,6 +17,20 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
+// Auto-logout on 401 — token expired or invalid
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error?.response?.status === 401) {
+      await AsyncStorage.multiRemove(['token', 'user']);
+      // Notify the app to redirect to login — AuthContext listens for this
+      const { DeviceEventEmitter } = require('react-native');
+      DeviceEventEmitter.emit('auth:logout');
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const authService = {
   register: (name, email, password) =>
     api.post('/api/auth/register', { name, email, password }),
