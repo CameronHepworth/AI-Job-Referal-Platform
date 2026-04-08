@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  Keyboard,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -181,6 +182,7 @@ export default function FirmSearchScreen() {
   const [filtersOpen, setFiltersOpen] = useState(true);
 
   const handleSearch = useCallback(async () => {
+    Keyboard.dismiss();
     setLoading(true);
     setSearched(true);
     try {

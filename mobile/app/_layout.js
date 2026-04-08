@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { PurchaseProvider } from '../context/PurchaseContext';
+import { ThemeProvider } from '../context/ThemeContext';
 import { registerForPushNotifications, setupNotificationListeners } from '../services/notifications';
 
 function RootLayoutNav() {
@@ -57,16 +58,19 @@ function RootLayoutNav() {
       <Stack.Screen name="paywall" options={{ title: 'Upgrade to Pro', presentation: 'modal' }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       <Stack.Screen name="reset-password" options={{ headerShown: false }} />
+      <Stack.Screen name="privacy-policy" options={{ title: 'Privacy Policy', headerBackTitle: 'Back' }} />
     </Stack>
   );
 }
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <PurchaseProvider>
-        <RootLayoutNav />
-      </PurchaseProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <PurchaseProvider>
+          <RootLayoutNav />
+        </PurchaseProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

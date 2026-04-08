@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAuth } from '../../context/AuthContext';
 import { usePurchase } from '../../context/PurchaseContext';
+import { useTheme } from '../../context/ThemeContext';
 import { authService, userService, resumeService } from '../../services/api';
 
 // ---------------------------------------------------------------------------
@@ -124,6 +125,7 @@ function DeleteModal({ visible, onClose, onConfirm }) {
 export default function ProfileScreen() {
   const { user, logout, updateUser } = useAuth();
   const { isPro, purchasePackage, restorePurchases, devTogglePro } = usePurchase();
+  const { isDark, toggleDark, colors } = useTheme();
   const router = useRouter();
 
   const [sendingReset, setSendingReset] = useState(false);
@@ -232,35 +234,36 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       {/* Avatar */}
-      <View style={styles.avatarSection}>
+      <View style={[styles.avatarSection, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{user?.name?.[0]?.toUpperCase()}</Text>
         </View>
-        <Text style={styles.name}>{user?.name}</Text>
-        <Text style={styles.email}>{user?.email}</Text>
-        <View style={[styles.badge, isPro ? styles.badgePro : styles.badgeFree]}>
+        <Text style={[styles.name, { color: colors.text }]}>{user?.name}</Text>
+        <Text style={[styles.email, { color: colors.textSecondary }]}>{user?.email}</Text>
+        <View style={[styles.badge, isPro ? styles.badgePro : { backgroundColor: colors.borderStrong }]}>
           <Text style={[styles.badgeText, isPro && { color: '#fff' }]}>{isPro ? '✦ Pro' : 'Free Plan'}</Text>
         </View>
       </View>
 
       {/* Account section */}
-      <SectionHeader label="Account" />
-      <View style={styles.menu}>
-        <MenuRow icon="person-outline" label="Full Name" value={user?.name} onPress={() => setEditName(true)} />
-        <MenuRow icon="mail-outline" label="Email Address" value={user?.email} onPress={() => setEditEmail(true)} />
+      <SectionHeader label="Account" colors={colors} />
+      <View style={[styles.menu, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <MenuRow icon="person-outline" label="Full Name" value={user?.name} onPress={() => setEditName(true)} colors={colors} />
+        <MenuRow icon="mail-outline" label="Email Address" value={user?.email} onPress={() => setEditEmail(true)} colors={colors} />
         <MenuRow
           icon="key-outline"
           label="Reset Password"
           onPress={handleResetPassword}
-          right={sendingReset ? <ActivityIndicator size="small" color="#4f46e5" /> : null}
+          right={sendingReset ? <ActivityIndicator size="small" color={colors.primary} /> : null}
+          colors={colors}
         />
       </View>
 
       {/* Resume section */}
-      <SectionHeader label="Resume" />
-      <View style={styles.menu}>
+      <SectionHeader label="Resume" colors={colors} />
+      <View style={[styles.menu, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         {user?.resumeData?.uploadedAt ? (
           <>
             <View style={styles.menuItem}>
@@ -299,8 +302,8 @@ export default function ProfileScreen() {
       </View>
 
       {/* Plan section */}
-      <SectionHeader label="Plan" />
-      <View style={styles.menu}>
+      <SectionHeader label="Plan" colors={colors} />
+      <View style={[styles.menu, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         {isPro ? (
           <>
             <View style={styles.menuItem}>
@@ -331,26 +334,37 @@ export default function ProfileScreen() {
       </View>
 
       {/* Preferences section */}
-      <SectionHeader label="Preferences" />
-      <View style={styles.menu}>
-        <View style={styles.menuItem}>
-          <Ionicons name="notifications-outline" size={20} color="#6b7280" />
-          <Text style={styles.menuLabel}>Push Notifications</Text>
+      <SectionHeader label="Preferences" colors={colors} />
+      <View style={[styles.menu, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.menuItem, { borderBottomColor: colors.surfaceSecondary }]}>
+          <Ionicons name="notifications-outline" size={20} color={colors.textSecondary} />
+          <Text style={[styles.menuLabel, { color: colors.text }]}>Push Notifications</Text>
           <Switch
             value={notificationsEnabled}
             onValueChange={setNotificationsEnabled}
-            trackColor={{ false: '#e5e7eb', true: '#c7d2fe' }}
-            thumbColor={notificationsEnabled ? '#4f46e5' : '#9ca3af'}
+            trackColor={{ false: colors.borderStrong, true: '#c7d2fe' }}
+            thumbColor={notificationsEnabled ? colors.primary : colors.textMuted}
+            style={{ marginLeft: 'auto' }}
+          />
+        </View>
+        <View style={[styles.menuItem, { borderBottomColor: colors.surfaceSecondary }]}>
+          <Ionicons name="moon-outline" size={20} color={colors.textSecondary} />
+          <Text style={[styles.menuLabel, { color: colors.text }]}>Dark Mode</Text>
+          <Switch
+            value={isDark}
+            onValueChange={toggleDark}
+            trackColor={{ false: colors.borderStrong, true: '#c7d2fe' }}
+            thumbColor={isDark ? colors.primary : colors.textMuted}
             style={{ marginLeft: 'auto' }}
           />
         </View>
       </View>
 
       {/* Support section */}
-      <SectionHeader label="Support" />
-      <View style={styles.menu}>
-        <MenuRow icon="help-circle-outline" label="Help & Support" onPress={() => {}} />
-        <MenuRow icon="shield-checkmark-outline" label="Privacy Policy" onPress={() => {}} />
+      <SectionHeader label="Support" colors={colors} />
+      <View style={[styles.menu, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <MenuRow icon="help-circle-outline" label="Help & Support" onPress={() => {}} colors={colors} />
+        <MenuRow icon="shield-checkmark-outline" label="Privacy Policy" onPress={() => router.push('/privacy-policy')} colors={colors} />
       </View>
 
       {/* DEV ONLY */}
@@ -370,14 +384,14 @@ export default function ProfileScreen() {
       )}
 
       {/* Sign out */}
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Ionicons name="log-out-outline" size={20} color="#ef4444" />
-        <Text style={styles.logoutText}>Sign out</Text>
+      <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.dangerLight }]} onPress={handleLogout}>
+        <Ionicons name="log-out-outline" size={20} color={colors.danger} />
+        <Text style={[styles.logoutText, { color: colors.danger }]}>Sign out</Text>
       </TouchableOpacity>
 
       {/* Delete account */}
       <TouchableOpacity style={styles.deleteAccountBtn} onPress={() => setDeleteModal(true)}>
-        <Text style={styles.deleteAccountText}>Delete Account</Text>
+        <Text style={[styles.deleteAccountText, { color: colors.textMuted }]}>Delete Account</Text>
       </TouchableOpacity>
 
       {/* Modals */}
@@ -408,19 +422,20 @@ export default function ProfileScreen() {
   );
 }
 
-function SectionHeader({ label }) {
-  return <Text style={styles.sectionHeader}>{label}</Text>;
+function SectionHeader({ label, colors }) {
+  return <Text style={[styles.sectionHeader, { color: colors?.textMuted || '#9ca3af' }]}>{label}</Text>;
 }
 
-function MenuRow({ icon, label, value, onPress, right }) {
+function MenuRow({ icon, label, value, onPress, right, colors }) {
+  const c = colors || { text: '#374151', textSecondary: '#9ca3af', textMuted: '#6b7280', surfaceSecondary: '#f9fafb' };
   return (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-      <Ionicons name={icon} size={20} color="#6b7280" />
+    <TouchableOpacity style={[styles.menuItem, { borderBottomColor: c.surfaceSecondary }]} onPress={onPress}>
+      <Ionicons name={icon} size={20} color={c.textSecondary} />
       <View style={{ flex: 1 }}>
-        <Text style={styles.menuLabel}>{label}</Text>
-        {value && <Text style={styles.menuSub} numberOfLines={1}>{value}</Text>}
+        <Text style={[styles.menuLabel, { color: c.text }]}>{label}</Text>
+        {value && <Text style={[styles.menuSub, { color: c.textMuted }]} numberOfLines={1}>{value}</Text>}
       </View>
-      {right ?? <Ionicons name="chevron-forward" size={16} color="#d1d5db" />}
+      {right ?? <Ionicons name="chevron-forward" size={16} color={c.borderStrong || '#d1d5db'} />}
     </TouchableOpacity>
   );
 }
