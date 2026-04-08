@@ -95,8 +95,14 @@ router.post('/', protect, async (req, res) => {
 
       let company = await Company.findOne({ name: new RegExp(`^${escapeRegex(ext.name)}$`, 'i') });
       if (!company) {
-        company = await Company.create({ name: ext.name, domain: ext.domain, logoUrl: ext.logoUrl });
-        enrichCompany(company).catch(() => {});
+        try {
+          company = await Company.create({ name: ext.name, domain: ext.domain, logoUrl: ext.logoUrl });
+          enrichCompany(company).catch(() => {});
+        } catch (e) {
+          // Duplicate key — another request created it simultaneously, fetch it
+          company = await Company.findOne({ name: new RegExp(`^${escapeRegex(ext.name)}$`, 'i') });
+          if (!company) continue;
+        }
       }
 
       // Apply remaining filters to external results
@@ -143,7 +149,8 @@ router.post('/', protect, async (req, res) => {
 
     res.json({ companies: merged });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('[discover] error:', err.message, err.stack);
+    res.status(500).json({ message: 'Server error', detail: err.message });
   }
 });
 
