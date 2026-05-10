@@ -16,7 +16,7 @@ const { runSignalScan } = require('./services/signalEngine');
 
 const app = express();
 
-// Trust Railway's proxy so rate limiting uses the real client IP
+// Trust the hosting platform's proxy so rate limiting uses the real client IP
 app.set('trust proxy', 1);
 
 // Security headers (XSS, clickjacking, MIME sniffing, etc.)
